@@ -67,17 +67,30 @@ public class Jabeja {
     if (config.getNodeSelectionPolicy() == NodeSelectionPolicy.HYBRID
             || config.getNodeSelectionPolicy() == NodeSelectionPolicy.LOCAL) {
       // swap with random neighbors
-      // TODO
+      // TODO: Double check this logic - Written by Daniel
+      Integer[] neighbors = getNeighbors(nodep);
+      partner = findPartner(nodeId, neighbors);
     }
 
     if (config.getNodeSelectionPolicy() == NodeSelectionPolicy.HYBRID
             || config.getNodeSelectionPolicy() == NodeSelectionPolicy.RANDOM) {
       // if local policy fails then randomly sample the entire graph
-      // TODO
+      // TODO: Double check this logic - Written by Daniel
+      if (partner == null) {
+        Integer[] sample = getSample(nodeId);
+        partner = findPartner(nodeId, sample);
+      }
     }
 
     // swap the colors
-    // TODO
+    // TODO: Double check this logic - Written by Daniel
+    if (partner != null) {
+      int tempColor = nodep.getColor();
+      nodep.setColor(partner.getColor());
+      partner.setColor(tempColor);
+      numberOfSwaps++;
+    }
+
   }
 
   public Node findPartner(int nodeId, Integer[] nodes){
@@ -106,7 +119,7 @@ public class Jabeja {
       double newEnergy = Math.pow(dpq, alpha) + Math.pow(dqp, alpha);
 
       //Calculate the benefit
-      if (newEnergy * T > oldEnergy || newEnergy > highestBenefit) {
+      if (((newEnergy * T) > oldEnergy) && (newEnergy > highestBenefit)) {
         bestPartner = nodeq;
         highestBenefit = newEnergy;
       }
