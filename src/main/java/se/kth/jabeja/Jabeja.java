@@ -87,7 +87,31 @@ public class Jabeja {
     Node bestPartner = null;
     double highestBenefit = 0;
 
-    // TODO
+    float alpha = config.getAlpha();
+
+
+    // TODO: Double check this logic - Written by Daniel
+    for (int q : nodes) {
+      //Get node q from the graph
+      Node nodeq = entireGraph.get(q);
+
+      //Calculate the old energy
+      int dpp = getDegree(nodep, nodep.getColor());
+      int dqq = getDegree(nodeq, nodeq.getColor());
+      double oldEnergy = Math.pow(dpp, alpha) + Math.pow(dqq, alpha);
+
+      //Calculate the new energy
+      int dpq = getDegree(nodep, nodeq.getColor());
+      int dqp = getDegree(nodeq, nodep.getColor());
+      double newEnergy = Math.pow(dpq, alpha) + Math.pow(dqp, alpha);
+
+      //Calculate the benefit
+      if (newEnergy * T > oldEnergy || newEnergy > highestBenefit) {
+        bestPartner = nodeq;
+        highestBenefit = newEnergy;
+      }
+    }
+    //TODO: END OF DANIEL'S CODE BLOCK
 
     return bestPartner;
   }
