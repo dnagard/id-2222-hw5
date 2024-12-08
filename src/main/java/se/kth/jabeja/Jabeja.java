@@ -38,6 +38,11 @@ public class Jabeja {
         sampleAndSwap(id);
       }
 
+      // Restart mechanism
+        if (round % config.getRestartInterval() == 0) {
+            T = config.getMaxInitialTemperature(); // Restart temperature
+        }
+
       //one cycle for all nodes have completed.
       //reduce the temperature
       saCoolDown();
@@ -48,13 +53,23 @@ public class Jabeja {
   /**
    * Simulated analealing cooling function
    */
-  private void saCoolDown(){
-    // TODO for second task
-    if (T > 1)
-      T -= config.getDelta();
-    if (T < 1)
-      T = 1;
-  }
+  // private void saCoolDown(){
+  //   // TODO for second task
+  //   if (T > 1)
+  //     T -= config.getDelta();
+  //   if (T < 1)
+  //     T = 1;
+  // }
+
+  private void saCoolDown() {
+    if (T > 1) {
+        T *= config.getCoolingRate();
+    }
+    if (T < 1) {
+        T = 1;
+    }
+}
+
 
   /**
    * Sample and swap algorith at node p
@@ -121,9 +136,13 @@ public class Jabeja {
       double newEnergy = Math.pow(dpq, alpha) + Math.pow(dqp, alpha);
 
       //Calculate the benefit
-      if (((newEnergy * T) > oldEnergy) && (newEnergy > highestBenefit)) {
-        bestPartner = nodeq;
-        highestBenefit = newEnergy;
+      // if (((newEnergy * T) > oldEnergy) && (newEnergy > highestBenefit)) {
+      //   bestPartner = nodeq;
+      //   highestBenefit = newEnergy;
+      // }
+      if (Math.random() < Math.exp((newEnergy - oldEnergy) / T)) {
+          bestPartner = nodeq;
+          highestBenefit = newEnergy;
       }
     }
     //TODO: END OF DANIEL'S CODE BLOCK

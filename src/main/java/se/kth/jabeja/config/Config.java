@@ -13,6 +13,35 @@ public class Config {
   private GraphInitColorPolicy initColorPolicy;
   private NodeSelectionPolicy nodeSelectionPolicy;
   private Float alpha;
+  private float coolingRate = 0.95f; // Default cooling rate for exponential cooling
+  private int restartInterval = 400; // Default restart interval
+  private float maxInitialTemperature = 2.0f; // Default initial temperature for restarts
+
+  // Getters for the new parameters
+    public float getCoolingRate() {
+        return coolingRate;
+    }
+
+    public int getRestartInterval() {
+        return restartInterval;
+    }
+
+    public float getMaxInitialTemperature() {
+        return maxInitialTemperature;
+    }
+
+    // Setters if needed
+    public void setCoolingRate(float coolingRate) {
+        this.coolingRate = coolingRate;
+    }
+
+    public void setRestartInterval(int restartInterval) {
+        this.restartInterval = restartInterval;
+    }
+
+    public void setMaxInitialTemperature(float maxInitialTemperature) {
+        this.maxInitialTemperature = maxInitialTemperature;
+    }
 
   public Config setAlpha(Float alpha) {
     this.alpha = alpha;

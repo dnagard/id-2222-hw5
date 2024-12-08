@@ -28,6 +28,11 @@ public class Main {
     private void startApp(String[] args) throws IOException {
         config = (new CLI()).parseArgs(args);
 
+        // Set custom test parameters here
+        config.setCoolingRate(0.9f); // Example cooling rate
+        config.setRestartInterval(200); // Restart interval
+        config.setMaxInitialTemperature(1.5f); // Max initial temperature
+
         //set seed for the application
         //Note for the results to be deterministic use
         //only one random generator.
