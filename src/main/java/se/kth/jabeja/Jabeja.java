@@ -91,6 +91,8 @@ public class Jabeja {
       numberOfSwaps++;
     }
 
+    saCoolDown();
+
   }
 
   public Node findPartner(int nodeId, Integer[] nodes){
