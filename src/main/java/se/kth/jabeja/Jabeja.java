@@ -132,9 +132,6 @@ public class Jabeja {
           numberOfSwaps++;
       }
     }
-
-    saCoolDown();
-
   }
 
   public Node findPartner(int nodeId, Integer[] nodes){
@@ -171,8 +168,10 @@ public class Jabeja {
 
       //TASK 2
       // if (Math.random() < Math.exp((newEnergy - oldEnergy) / T)) {
-      //     bestPartner = nodeq;
-      //     highestBenefit = newEnergy;
+      //     if (newEnergy > highestBenefit) {
+      //         bestPartner = nodeq;
+      //         highestBenefit = newEnergy;
+      //     }
       // }
 
       //BONUS TASK
