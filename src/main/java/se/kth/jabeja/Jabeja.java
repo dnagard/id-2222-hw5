@@ -140,12 +140,14 @@ public class Jabeja {
       //   bestPartner = nodeq;
       //   highestBenefit = newEnergy;
       // }
+      //TODO: END OF DANIEL'S CODE BLOCK
+
+      //TASK 2
       if (Math.random() < Math.exp((newEnergy - oldEnergy) / T)) {
           bestPartner = nodeq;
           highestBenefit = newEnergy;
       }
     }
-    //TODO: END OF DANIEL'S CODE BLOCK
 
     return bestPartner;
   }

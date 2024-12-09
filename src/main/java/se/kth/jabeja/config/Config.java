@@ -16,6 +16,7 @@ public class Config {
   private float coolingRate = 0.95f; // Default cooling rate for exponential cooling
   private int restartInterval = 400; // Default restart interval
   private float maxInitialTemperature = 2.0f; // Default initial temperature for restarts
+  
 
   // Getters for the new parameters
     public float getCoolingRate() {
