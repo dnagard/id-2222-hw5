@@ -19,6 +19,7 @@ public class Jabeja {
   private int round;
   private float T;
   private boolean resultFileCreated = false;
+  private final HashMap<Integer, Integer> nodeDegrees = new HashMap<>();
 
   //-------------------------------------------------------------------
   public Jabeja(HashMap<Integer, Node> graph, Config config) {
@@ -28,7 +29,12 @@ public class Jabeja {
     this.numberOfSwaps = 0;
     this.config = config;
     this.T = config.getTemperature();
-  }
+
+    // Precompute node degrees
+    for (int nodeId : entireGraph.keySet()) {
+        nodeDegrees.put(nodeId, entireGraph.get(nodeId).getNeighbours().size());
+    }
+}
 
 
   //-------------------------------------------------------------------
@@ -143,14 +149,42 @@ public class Jabeja {
       //TODO: END OF DANIEL'S CODE BLOCK
 
       //TASK 2
-      if (Math.random() < Math.exp((newEnergy - oldEnergy) / T)) {
-          bestPartner = nodeq;
-          highestBenefit = newEnergy;
+      // if (Math.random() < Math.exp((newEnergy - oldEnergy) / T)) {
+      //     bestPartner = nodeq;
+      //     highestBenefit = newEnergy;
+      // }
+
+      //BONUS TASK
+      // Calculate degree weight for the acceptance probability
+      float degreeWeight = (float) getDegree(nodeq, nodeq.getColor()) / (float) getAverageDegree();
+
+      // Acceptance probability based on weighted simulated annealing
+      // if (Math.random() < Math.exp(degreeWeight * (newEnergy - oldEnergy) / T)) {
+      //     bestPartner = nodeq;
+      //     highestBenefit = newEnergy;
+      // }
+
+      if ((newEnergy - oldEnergy) / T > -10) {  // Approximation threshold
+          float probability = 1 + (float) ((newEnergy - oldEnergy) / T);  // Linear approximation
+          if (Math.random() < probability) {
+              bestPartner = nodeq;
+              highestBenefit = newEnergy;
+          }
       }
+
     }
 
     return bestPartner;
   }
+
+  private float getAverageDegree() {
+      int totalDegree = 0;
+      for (Node node : entireGraph.values()) {
+          totalDegree += node.getNeighbours().size();
+      }
+      return (float) totalDegree / entireGraph.size();
+  }
+
 
   /**
    * The the degreee on the node based on color
@@ -158,16 +192,32 @@ public class Jabeja {
    * @param colorId
    * @return how many neighbors of the node have color == colorId
    */
-  private int getDegree(Node node, int colorId){
-    int degree = 0;
-    for(int neighborId : node.getNeighbours()){
-      Node neighbor = entireGraph.get(neighborId);
-      if(neighbor.getColor() == colorId){
-        degree++;
+  // private int getDegree(Node node, int colorId){
+  //   int degree = 0;
+  //   for(int neighborId : node.getNeighbours()){
+  //     Node neighbor = entireGraph.get(neighborId);
+  //     if(neighbor.getColor() == colorId){
+  //       degree++;
+  //     }
+  //   }
+  //   return degree;
+  // }
+
+  private int getDegree(Node node, int colorId) {
+      int degree = 0;
+      for (int neighborId : node.getNeighbours()) {
+          Node neighbor = entireGraph.get(neighborId);
+          if (neighbor.getColor() == colorId) {
+              degree++;
+          }
       }
-    }
-    return degree;
+      return degree;
   }
+
+  private int getPrecomputedDegree(int nodeId) {
+      return nodeDegrees.getOrDefault(nodeId, 0);
+  }
+
 
   /**
    * Returns a uniformly random sample of the graph
@@ -195,40 +245,60 @@ public class Jabeja {
     return rndIds.toArray(ids);
   }
 
-  /**
-   * Get random neighbors. The number of random neighbors is controlled using
-   * -closeByNeighbors command line argument which can be obtained from the config
-   * using {@link Config#getRandomNeighborSampleSize()}
-   * @param node
-   * @return
-   */
+
+  // /**
+  //  * Get random neighbors. The number of random neighbors is controlled using
+  //  * -closeByNeighbors command line argument which can be obtained from the config
+  //  * using {@link Config#getRandomNeighborSampleSize()}
+  //  * @param node
+  //  * @return
+  //  */
+  // private Integer[] getNeighbors(Node node) {
+  //   ArrayList<Integer> list = node.getNeighbours();
+  //   int count = config.getRandomNeighborSampleSize();
+  //   int rndId;
+  //   int index;
+  //   int size = list.size();
+  //   ArrayList<Integer> rndIds = new ArrayList<Integer>();
+
+  //   if (size <= count)
+  //     rndIds.addAll(list);
+  //   else {
+  //     while (true) {
+  //       index = RandNoGenerator.nextInt(size);
+  //       rndId = list.get(index);
+  //       if (!rndIds.contains(rndId)) {
+  //         rndIds.add(rndId);
+  //         count--;
+  //       }
+
+  //       if (count == 0)
+  //         break;
+  //     }
+  //   }
+
+  //   Integer[] arr = new Integer[rndIds.size()];
+  //   return rndIds.toArray(arr);
+  // }
+
+  //BONUS TASK
   private Integer[] getNeighbors(Node node) {
-    ArrayList<Integer> list = node.getNeighbours();
-    int count = config.getRandomNeighborSampleSize();
-    int rndId;
-    int index;
-    int size = list.size();
-    ArrayList<Integer> rndIds = new ArrayList<Integer>();
+      ArrayList<Integer> neighbors = node.getNeighbours();
 
-    if (size <= count)
-      rndIds.addAll(list);
-    else {
-      while (true) {
-        index = RandNoGenerator.nextInt(size);
-        rndId = list.get(index);
-        if (!rndIds.contains(rndId)) {
-          rndIds.add(rndId);
-          count--;
-        }
+      // Sort neighbors by degree in descending order
+      neighbors.sort((a, b) -> Integer.compare(
+          entireGraph.get(b).getNeighbours().size(),
+          entireGraph.get(a).getNeighbours().size()
+      ));
 
-        if (count == 0)
-          break;
-      }
-    }
+      // Dynamically choose the top neighbors based on sample size
+      int dynamicSampleSize = Math.min(config.getRandomNeighborSampleSize(), neighbors.size());
+      ArrayList<Integer> selectedNeighbors = new ArrayList<>(neighbors.subList(0, dynamicSampleSize));
 
-    Integer[] arr = new Integer[rndIds.size()];
-    return rndIds.toArray(arr);
+      return selectedNeighbors.toArray(new Integer[0]);
   }
+
+
 
 
   /**
