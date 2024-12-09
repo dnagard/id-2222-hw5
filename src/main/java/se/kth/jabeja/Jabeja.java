@@ -38,23 +38,41 @@ public class Jabeja {
 
 
   //-------------------------------------------------------------------
+  // public void startJabeja() throws IOException {
+  //   for (round = 0; round < config.getRounds(); round++) {
+  //     for (int id : entireGraph.keySet()) {
+  //       sampleAndSwap(id);
+  //     }
+
+  //     // Restart mechanism
+  //       if (round % config.getRestartInterval() == 0) {
+  //           T = config.getMaxInitialTemperature(); // Restart temperature
+  //       }
+
+  //     //one cycle for all nodes have completed.
+  //     //reduce the temperature
+  //     saCoolDown();
+  //     report();
+  //   }
+  // }
+
+  //BONUS TASK
   public void startJabeja() throws IOException {
-    for (round = 0; round < config.getRounds(); round++) {
-      for (int id : entireGraph.keySet()) {
-        sampleAndSwap(id);
+      for (round = 0; round < config.getRounds(); round++) {
+          // Parallelize node processing
+          nodeIds.parallelStream().forEach(this::sampleAndSwap);
+
+          // Restart mechanism
+          if (round % config.getRestartInterval() == 0) {
+              T = config.getMaxInitialTemperature(); // Restart temperature
+          }
+
+          // Reduce the temperature
+          saCoolDown();
+          report();
       }
-
-      // Restart mechanism
-        if (round % config.getRestartInterval() == 0) {
-            T = config.getMaxInitialTemperature(); // Restart temperature
-        }
-
-      //one cycle for all nodes have completed.
-      //reduce the temperature
-      saCoolDown();
-      report();
-    }
   }
+
 
   /**
    * Simulated analealing cooling function
@@ -109,7 +127,10 @@ public class Jabeja {
       int tempColor = nodep.getColor();
       nodep.setColor(partner.getColor());
       partner.setColor(tempColor);
-      numberOfSwaps++;
+      // numberOfSwaps++;
+      synchronized (this) {
+          numberOfSwaps++;
+      }
     }
 
     saCoolDown();
@@ -159,18 +180,18 @@ public class Jabeja {
       float degreeWeight = (float) getDegree(nodeq, nodeq.getColor()) / (float) getAverageDegree();
 
       // Acceptance probability based on weighted simulated annealing
-      // if (Math.random() < Math.exp(degreeWeight * (newEnergy - oldEnergy) / T)) {
-      //     bestPartner = nodeq;
-      //     highestBenefit = newEnergy;
-      // }
-
-      if ((newEnergy - oldEnergy) / T > -10) {  // Approximation threshold
-          float probability = 1 + (float) ((newEnergy - oldEnergy) / T);  // Linear approximation
-          if (Math.random() < probability) {
-              bestPartner = nodeq;
-              highestBenefit = newEnergy;
-          }
+      if (Math.random() < Math.exp(degreeWeight * (newEnergy - oldEnergy) / T)) {
+          bestPartner = nodeq;
+          highestBenefit = newEnergy;
       }
+
+      // if ((newEnergy - oldEnergy) / T > -10) {  // Approximation threshold
+      //     float probability = 1 + (float) ((newEnergy - oldEnergy) / T);  // Linear approximation
+      //     if (Math.random() < probability) {
+      //         bestPartner = nodeq;
+      //         highestBenefit = newEnergy;
+      //     }
+      // }
 
     }
 
@@ -282,21 +303,37 @@ public class Jabeja {
   // }
 
   //BONUS TASK
+  // private Integer[] getNeighbors(Node node) {
+  //     ArrayList<Integer> neighbors = node.getNeighbours();
+
+  //     // Sort neighbors by degree in descending order
+  //     neighbors.sort((a, b) -> Integer.compare(
+  //         entireGraph.get(b).getNeighbours().size(),
+  //         entireGraph.get(a).getNeighbours().size()
+  //     ));
+
+  //     // Dynamically choose the top neighbors based on sample size
+  //     int dynamicSampleSize = Math.min(config.getRandomNeighborSampleSize(), neighbors.size());
+  //     ArrayList<Integer> selectedNeighbors = new ArrayList<>(neighbors.subList(0, dynamicSampleSize));
+
+  //     return selectedNeighbors.toArray(new Integer[0]);
+  // }
+
   private Integer[] getNeighbors(Node node) {
       ArrayList<Integer> neighbors = node.getNeighbours();
 
-      // Sort neighbors by degree in descending order
-      neighbors.sort((a, b) -> Integer.compare(
-          entireGraph.get(b).getNeighbours().size(),
-          entireGraph.get(a).getNeighbours().size()
-      ));
+      // Sort neighbors by degree in descending order using parallel streams
+      neighbors.parallelStream()
+              .sorted((a, b) -> Integer.compare(
+                  entireGraph.get(b).getNeighbours().size(),
+                  entireGraph.get(a).getNeighbours().size()
+              ));
 
       // Dynamically choose the top neighbors based on sample size
       int dynamicSampleSize = Math.min(config.getRandomNeighborSampleSize(), neighbors.size());
-      ArrayList<Integer> selectedNeighbors = new ArrayList<>(neighbors.subList(0, dynamicSampleSize));
-
-      return selectedNeighbors.toArray(new Integer[0]);
+      return neighbors.subList(0, dynamicSampleSize).toArray(new Integer[0]);
   }
+
 
 
 
